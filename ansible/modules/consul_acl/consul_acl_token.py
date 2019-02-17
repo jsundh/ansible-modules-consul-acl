@@ -45,6 +45,13 @@ options:
       - If true, the token will be local to the current datacenter.
     type: bool
     default: false
+  match_description:
+    description:
+      - If true, the module will attempt to match an existing token based on description by listing all tokens.
+      - Allows matching existing tokens without saving the accessor ID.
+      - Only use this if you are sure that the token descriptions are sufficiently unique.
+    type: bool
+    default: false
   state:
     description:
         - If C(present), a token will be created or updated.
@@ -137,6 +144,13 @@ class ConsulAclToken(object):
         self.module = module
         self.url = module.params["url"]
         self.token = module.params["token"]
+
+    def find_existing_token(self, description):
+        # TODO: Limit the search based on policy ID
+        tokens = self._make_api_request("acl/tokens", "GET")
+        for token in tokens:
+            if token["description"] == description:
+                return token["accessor_id"]
 
     def create_token(self, **kwargs):
         created = self._make_api_request("acl/token", "PUT", kwargs)
@@ -240,6 +254,7 @@ def main():
         policies=dict(type="list", elements="dict", default=None),
         description=dict(type="str", default=""),
         local=dict(type="bool", default=False),
+        match_description=dict(type="bool", default=False),
         state=dict(
             type="str", choices=["present", "absent", "cloned"], default="present"
         ),
@@ -256,6 +271,7 @@ def main():
     policies = module.params["policies"] or []
     description = module.params["description"]
     local = module.params["local"]
+    match_description = module.params["match_description"]
     state = module.params["state"]
     url = module.params["url"]
     token = module.params["token"]
@@ -268,8 +284,13 @@ def main():
         module.fail_json(msg="policies must set when state == 'present'")
     if state == "cloned" and not accessor_id:
         module.fail_json(msg="accessor_id must be set when state == 'cloned'")
+    if match_description and not description:
+        module.fail_json(msg="description cannot be empty when matching by description")
 
     consul_acl = ConsulAclToken(module)
+
+    if match_description and not accessor_id:
+        accessor_id = consul_acl.find_existing_token(description)
 
     kwargs = dict(policies=policies, description=description, local=local)
     if state == "present" and accessor_id:

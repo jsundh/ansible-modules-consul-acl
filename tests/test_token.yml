@@ -78,7 +78,21 @@
           - t5.changed
           - t5.operation == 'delete'
 
-    - name: Remove t4 token
+    - name: Match by description
+      consul_acl_token:
+        description: "{{ t4.description }}"
+        policies:
+          - name: example
+        match_description: yes
+        state: present
+      register: t6
+
+    - assert:
+        that:
+          - not t6.changed
+          - t6.accessor_id == t4.accessor_id
+
+    - name: Remove remaining token
       consul_acl_token:
         accessor_id: "{{ t4.accessor_id }}"
         state: absent
