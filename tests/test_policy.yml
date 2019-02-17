@@ -1,0 +1,76 @@
+- hosts: localhost
+  gather_facts: no
+  ignore_errors: yes
+  tasks:
+    - name: Create policy
+      consul_acl_policy:
+        name: example
+        description: An example policy
+        rules: |
+          kv_prefix "example" {
+            policy = "write"
+          }
+        state: present
+      register: p1
+
+    - assert:
+        that:
+          - p1.changed
+          - p1.operation == 'create'
+
+    - name: Update policy by ID
+      consul_acl_policy:
+        id: "{{ p1.id }}"
+        name: example
+        description: An updated example policy
+        rules: |
+          kv_prefix "example" {
+            policy = "read"
+          }
+        state: present
+      register: p2
+
+    - assert:
+        that:
+          - p2.changed
+          - p2.operation == 'update'
+          - p2.id == p1.id
+
+    - name: Update policy by name
+      consul_acl_policy:
+        name: "{{ p1.name }}"
+        description: An updated example policy
+        rules: |
+          kv_prefix "example" {
+            policy = "write"
+          }
+        state: present
+      register: p3
+
+    - assert:
+        that:
+          - p3.changed
+          - p3.operation == 'update'
+          - p3.id == p1.id
+
+    - name: Remove policy by name
+      consul_acl_policy:
+        name: example
+        state: absent
+      register: p4
+
+    - assert:
+        that:
+          - p4.changed
+          - p4.operation == 'delete'
+          - p4.id == p1.id
+
+    - name: Remove non-existing policy
+      consul_acl_policy:
+        name: unlikely-to-exist
+        state: absent
+      register: p5
+
+    - assert:
+        that:
+          - not p5.changed
