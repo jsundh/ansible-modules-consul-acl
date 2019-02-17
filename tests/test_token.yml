@@ -1,0 +1,89 @@
+- hosts: localhost
+  gather_facts: no
+  ignore_errors: yes
+  tasks:
+    - name: Create policy
+      consul_acl_policy:
+        name: example
+        description: An example policy
+        rules: |
+          kv_prefix "example" {
+            policy = "write"
+          }
+        state: present
+      register: policy
+
+    - name: Create token
+      consul_acl_token:
+        description: test-token-1
+        policies:
+          - name: example
+      register: t1
+
+    - assert:
+        that:
+          - t1.changed
+          - t1.operation == 'create'
+
+    - name: Match previous token
+      consul_acl_token:
+        accessor_id: "{{ t1.accessor_id }}"
+        description: test-token-1
+        policies:
+          - id: "{{ t1.policies[0].id }}"
+        state: present
+      register: t2
+
+    - assert:
+        that:
+          - not t2.changed
+          - t2.accessor_id == t1.accessor_id
+
+    - name: Update by accessor ID
+      consul_acl_token:
+        accessor_id: "{{ t1.accessor_id }}"
+        description: test-token-1-updated
+        policies:
+          - name: example
+        state: present
+      register: t3
+
+    - assert:
+        that:
+          - t3.changed
+          - t3.operation == 'update'
+          - t3.accessor_id == t1.accessor_id
+
+    - name: Clone token
+      consul_acl_token:
+        accessor_id: "{{ t1.accessor_id }}"
+        state: cloned
+      register: t4
+
+    - assert:
+        that:
+          - t4.changed
+          - t4.operation == 'clone'
+          - t4.accessor_id != t1.accessor_id
+          - t4.policies == t3.policies
+
+    - name: Remove t1 token
+      consul_acl_token:
+        accessor_id: "{{ t1.accessor_id }}"
+        state: absent
+      register: t5
+
+    - assert:
+        that:
+          - t5.changed
+          - t5.operation == 'delete'
+
+    - name: Remove t4 token
+      consul_acl_token:
+        accessor_id: "{{ t4.accessor_id }}"
+        state: absent
+
+    - name: Remove policy
+      consul_acl_policy:
+        id: "{{ policy.id }}"
+        state: absent
