@@ -145,9 +145,14 @@ class ConsulAclToken(object):
         self.url = module.params["url"]
         self.token = module.params["token"]
 
-    def find_existing_token(self, description):
-        # TODO: Limit the search based on policy ID
-        tokens = self._make_api_request("acl/tokens", "GET")
+    def find_existing_token(self, description, policies):
+        policy_filter = ""
+        for link in policies:
+            if "id" in link:
+                policy_filter = "?policy=" + link["id"]
+                break
+
+        tokens = self._make_api_request("acl/tokens" + policy_filter, "GET")
         for token in tokens:
             if token["description"] == description:
                 return token["accessor_id"]
@@ -290,7 +295,7 @@ def main():
     consul_acl = ConsulAclToken(module)
 
     if match_description and not accessor_id:
-        accessor_id = consul_acl.find_existing_token(description)
+        accessor_id = consul_acl.find_existing_token(description, policies)
 
     kwargs = dict(policies=policies, description=description, local=local)
     if state == "present" and accessor_id:

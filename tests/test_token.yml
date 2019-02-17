@@ -82,7 +82,7 @@
       consul_acl_token:
         description: "{{ t4.description }}"
         policies:
-          - name: example
+          - id: "{{ policy.id }}"
         match_description: yes
         state: present
       register: t6
