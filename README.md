@@ -1,6 +1,9 @@
 # ansible-modules-consul-acl
 
-Ansible modules for the [Consul ACL system](https://www.consul.io/docs/agent/acl-system.html).
+Ansible modules for the [Consul ACL system](https://www.consul.io/docs/agent/acl-system.html):
+
+-   `consul_acl_policy`
+-   `consul_acl_token`
 
 ## Installation
 
@@ -14,10 +17,7 @@ The modules have no external dependencies except Ansible.
 
 ## Usage
 
-The documentation for each module is mostly complete, although it is currently not generated anywhere:
-
--   [consul_acl_policy](ansible/modules/consul_acl/consul_acl_policy.py)
--   [consul_acl_token](ansible/modules/consul_acl/consul_acl_token.py)
+The documentation for each module is mostly complete - use `ansible-doc` to view it.
 
 ### Example
 

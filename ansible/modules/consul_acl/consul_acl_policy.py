@@ -18,8 +18,8 @@ short_description: Manage Consul ACL policies
 version_added: "N/A"
 
 description:
-  - Create, update and delete policies for the new Consul ACL system.
-  - Official API documentation: https://www.consul.io/api/acl/policies.html
+  - "Create, update and delete policies for the new Consul ACL system."
+  - "Official API documentation: https://www.consul.io/api/acl/policies.html"
 
 options:
   id:
@@ -39,7 +39,7 @@ options:
     default: ""
   rules:
     description:
-      - Policy rules following the HCL rule specification: https://www.consul.io/docs/agent/acl-rules.html#rule-specification.
+      - "Policy rules following the HCL rule specification: https://www.consul.io/docs/agent/acl-rules.html#rule-specification."
       - Required when C(state=present).
     type: str
   state:
@@ -132,7 +132,7 @@ id:
   sample: 6a524d8b-b8d5-4e81-82b3-625aeefb40f6
 hash:
   description: The policy content hash
-  returned: when C(state=present)
+  returned: when state == 'present'
   type: str
   sample: RV0EhBF/LkDrzjrI+4AMm1MqlX6X/J2JgW4S9uBkBu0=
 """

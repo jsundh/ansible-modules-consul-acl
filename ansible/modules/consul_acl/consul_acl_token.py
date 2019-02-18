@@ -18,8 +18,8 @@ short_description: Manage Consul ACL tokens
 version_added: "N/A"
 
 description:
-  - Create, update and delete tokens for the new Consul ACL system.
-  - Official API documentation: https://www.consul.io/api/acl/tokens.html
+  - "Create, update and delete tokens for the new Consul ACL system."
+  - "Official API documentation: https://www.consul.io/api/acl/tokens.html"
 
 options:
   accessor_id:
@@ -107,27 +107,27 @@ operation:
   sample: create
 accessor_id:
   description: The accessor ID of the token
-  returned: when C(state!=absent)
+  returned: when state != 'absent'
   type: str
   sample: 6a524d8b-b8d5-4e81-82b3-625aeefb40f6
 secret_id:
   description: The secret ID of the token
-  returned: when C(state!=absent)
+  returned: when state != 'absent'
   type: str
   sample: 45a3bd52-07c7-47a4-52fd-0745e0cfe967
 hash:
   description: The token content hash
-  returned: when C(state=present)
+  returned: when state == 'present'
   type: str
   sample: RV0EhBF/LkDrzjrI+4AMm1MqlX6X/J2JgW4S9uBkBu0=
 description:
   description: Free form human readable description of the token
-  returned: when C(state!=absent)
+  returned: when state != 'absent'
   type: str
   sample: An example token
 policies:
   description: The list of policy links connected to the token
-  returned: when C(state!=absent)
+  returned: when state != 'absent'
   type: list
 """
 
