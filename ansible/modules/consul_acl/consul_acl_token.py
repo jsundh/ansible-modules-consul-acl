@@ -76,7 +76,6 @@ options:
     description:
       - If C(no), SSL certificates will not be validated.
       - This should only set to C(no) used on personally controlled sites using self-signed certificates.
-    type: str
     type: bool
     default: yes
   client_cert:
