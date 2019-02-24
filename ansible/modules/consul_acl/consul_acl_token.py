@@ -163,6 +163,8 @@ class ConsulAclToken(object):
 
     def update_token(self, accessor_id, **kwargs):
         current = self._make_api_request("acl/token/" + accessor_id, "GET")
+        if current["policies"] is None:
+            current["policies"] = []
 
         if not has_token_changed(current, kwargs):
             return dict(changed=False, operation="none", **current)
