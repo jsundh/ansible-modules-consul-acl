@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+-   Improve error handling for API request errors.
+
 ### Fixed
 
 -   Remove duplicate key in documentation.

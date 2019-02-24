@@ -195,6 +195,9 @@ class ConsulAclToken(object):
         response, info = fetch_url(
             self.module, endpoint_url, data=data, headers=headers, method=method
         )
+        if response is None:
+            self.module.fail_json(**info)
+
         status_code = info["status"]
         if status_code >= 400:
             self.module.fail_json(
