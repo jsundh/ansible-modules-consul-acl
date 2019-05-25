@@ -7,6 +7,7 @@ setuptools.setup(
     version="0.2.0",
     description="Ansible modules for the Consul ACL system",
     long_description=long_description,
+    long_description_content_type="text/markdown",
     author="Jakob Sundh",
     author_email="jsundh@users.noreply.github.com",
     url="https://github.com/jsundh/ansible-modules-consul-acl",
