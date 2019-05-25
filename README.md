@@ -34,7 +34,7 @@ The documentation for each module is mostly complete - use `ansible-doc` to view
     state: present
     url: https://localhost:8500
     token: a22c5e4f-0f48-4907-82db-843c6baf75be # Requires acl:write
-    register: consul_acl_policy
+  register: consul_acl_policy
 
 - name: Create ACL token
   consul_acl_token:
@@ -46,7 +46,7 @@ The documentation for each module is mostly complete - use `ansible-doc` to view
     state: present
     url: https://localhost:8500
     token: a22c5e4f-0f48-4907-82db-843c6baf75be # Requires acl:write
-    register: consul_acl_token
+  register: consul_acl_token
 ```
 
 ### Environment variables
