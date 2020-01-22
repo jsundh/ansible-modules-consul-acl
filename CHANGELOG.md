@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+-   Fix adding policies to bare tokens.
+
 ## [0.2.0] - 2019-02-24
 
 ### Changed

@@ -92,10 +92,39 @@
           - not t6.changed
           - t6.accessor_id == t4.accessor_id
 
-    - name: Remove remaining token
+    - name: Create token without policies
       consul_acl_token:
-        accessor_id: "{{ t4.accessor_id }}"
+        description: test-token-2
+      register: t7
+
+    - assert:
+        that:
+          - t7.changed
+          - t7.operation == 'create'
+
+    - name: Add policy to empty token
+      consul_acl_token:
+        accessor_id: "{{ t7.accessor_id }}"
+        policies:
+          - name: "{{ policy.name }}"
+        state: present
+      register: t8
+
+    - assert:
+        that:
+          - t8.changed
+          - t8.operation == 'update'
+          - t8.policies[0].name == policy.name
+
+    - name: Remove remaining tokens
+      consul_acl_token:
+        accessor_id: "{{ item.accessor_id }}"
         state: absent
+      loop:
+        - "{{ t4 }}"
+        - "{{ t7 }}"
+      loop_control:
+        label: "{{ item.accessor_id }}"
 
     - name: Remove policy
       consul_acl_policy:
