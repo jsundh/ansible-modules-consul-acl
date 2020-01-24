@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+-   Add ability to create tokens with a specific accessor ID.
+
 ### Changed
 
 -   Extract common API code into a module utility.

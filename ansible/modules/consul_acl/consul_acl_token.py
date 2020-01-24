@@ -24,9 +24,10 @@ description:
 options:
   accessor_id:
     description:
-     - The accessor ID of an existing token.
-     - If provided, any operation will be performed on the existing token.
+     - The accessor ID of either an existing token to update or a non-existing to create.
+     - If not specified, Consul will generate an UUID when creating a token.
     type: str
+    required: false
   description:
     description:
       - Free form human readable description of the token.
@@ -141,7 +142,12 @@ class ConsulAclToken(object):
         self.module = module
         self.api = api
 
-    def find_existing_token(self, description, policies):
+    def get_token(self, accessor_id):
+        return self.api.make_request(
+            "acl/token/" + accessor_id, "GET", ignore_error=403
+        )
+
+    def find_token(self, description, policies):
         policy_filter = ""
         for link in policies:
             if "id" in link:
@@ -151,21 +157,24 @@ class ConsulAclToken(object):
         tokens = self.api.make_request("acl/tokens" + policy_filter, "GET")
         for token in tokens:
             if token["description"] == description:
-                return token["accessor_id"]
+                # Relies on only secret_id not being returned, which is immutable anyway
+                return token
+
+        return None
 
     def create_token(self, **kwargs):
         created = self.api.make_request("acl/token", "PUT", kwargs)
 
         return dict(changed=True, operation="create", **created)
 
-    def update_token(self, accessor_id, **kwargs):
-        current = self.api.make_request("acl/token/" + accessor_id, "GET")
+    def update_token(self, current, **kwargs):
         if current.get("policies") is None:
             current["policies"] = []
 
         if not has_token_changed(current, kwargs):
             return dict(changed=False, operation="none", **current)
 
+        accessor_id = current["accessor_id"]
         updated = self.api.make_request("acl/token/" + accessor_id, "PUT", data=kwargs)
 
         return dict(changed=True, operation="update", **updated)
@@ -266,13 +275,17 @@ def main():
     consul_acl = ConsulAclToken(module, api)
 
     if match_description and not accessor_id:
-        accessor_id = consul_acl.find_existing_token(description, policies)
+        current_token = consul_acl.find_token(description, policies)
+    elif accessor_id:
+        current_token = consul_acl.get_token(accessor_id)
+    else:
+        current_token = None
 
     kwargs = dict(policies=policies, description=description, local=local)
-    if state == "present" and accessor_id:
-        result = consul_acl.update_token(accessor_id, **kwargs)
+    if state == "present" and current_token:
+        result = consul_acl.update_token(current_token, **kwargs)
     elif state == "present":
-        result = consul_acl.create_token(**kwargs)
+        result = consul_acl.create_token(accessor_id=accessor_id, **kwargs)
     elif state == "cloned":
         result = consul_acl.clone_token(accessor_id)
     elif state == "absent" and accessor_id:

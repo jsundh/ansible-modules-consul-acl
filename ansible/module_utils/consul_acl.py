@@ -12,9 +12,9 @@ class ConsulApi(object):
         self.url = module.params["url"]
         self.token = module.params["token"]
 
-    def make_request(self, endpoint, method, data=None):
+    def make_request(self, endpoint, method, data=None, ignore_error=None):
         if data is not None:
-            data = json.dumps(data)
+            data = json.dumps(snake_dict_to_camel_dict(data))
 
         endpoint_url = self.url + "/v1/" + endpoint
         headers = {"Content-Type": "application/json", "X-Consul-Token": self.token}
@@ -22,11 +22,11 @@ class ConsulApi(object):
         response, info = fetch_url(
             self.module, endpoint_url, data=data, headers=headers, method=method
         )
-        if response is None:
-            self.module.fail_json(**info)
 
         status_code = info["status"]
-        if status_code >= 400:
+        if ignore_error == status_code:
+            return None
+        elif status_code >= 400:
             self.module.fail_json(
                 msg="API request failed",
                 endpoint=endpoint_url,
@@ -34,6 +34,8 @@ class ConsulApi(object):
                 status=status_code,
                 response=info["body"],
             )
+        elif response is None:
+            self.module.fail_json(**info)
 
         body = json.loads(response.read())
         if type(body) is bool:

@@ -116,6 +116,22 @@
           - t8.operation == 'update'
           - t8.policies[0].name == policy.name
 
+    - name: Create token with a specific accessor ID
+      consul_acl_token:
+        accessor_id: 59fa6fc2-b70f-4767-8fd2-6a550660e068
+        description: test-token-3
+        match_description: false
+        policies:
+          - name: "{{ policy.name }}"
+        state: present
+      register: t9
+
+    - assert:
+        that:
+          - t9.changed
+          - t9.operation == 'create'
+          - t9.accessor_id == '59fa6fc2-b70f-4767-8fd2-6a550660e068'
+
     - name: Remove remaining tokens
       consul_acl_token:
         accessor_id: "{{ item.accessor_id }}"
@@ -123,6 +139,7 @@
       loop:
         - "{{ t4 }}"
         - "{{ t7 }}"
+        - "{{ t9 }}"
       loop_control:
         label: "{{ item.accessor_id }}"
 
