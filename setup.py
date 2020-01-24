@@ -4,7 +4,7 @@ long_description = open("README.md", "r").read().strip()
 
 setuptools.setup(
     name="ansible-modules-consul-acl",
-    version="0.2.0",
+    version="0.3.0",
     description="Ansible modules for the Consul ACL system",
     long_description=long_description,
     long_description_content_type="text/markdown",
