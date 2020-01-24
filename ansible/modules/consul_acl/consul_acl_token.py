@@ -130,19 +130,16 @@ policies:
   type: list
 """
 
-import json
 import os
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
-from ansible.module_utils.urls import fetch_url
+from ansible.module_utils.consul_acl import ConsulApi
 from itertools import chain
 
 
 class ConsulAclToken(object):
-    def __init__(self, module):
+    def __init__(self, module, api):
         self.module = module
-        self.url = module.params["url"]
-        self.token = module.params["token"]
+        self.api = api
 
     def find_existing_token(self, description, policies):
         policy_filter = ""
@@ -151,70 +148,39 @@ class ConsulAclToken(object):
                 policy_filter = "?policy=" + link["id"]
                 break
 
-        tokens = self._make_api_request("acl/tokens" + policy_filter, "GET")
+        tokens = self.api.make_request("acl/tokens" + policy_filter, "GET")
         for token in tokens:
             if token["description"] == description:
                 return token["accessor_id"]
 
     def create_token(self, **kwargs):
-        created = self._make_api_request("acl/token", "PUT", kwargs)
+        created = self.api.make_request("acl/token", "PUT", kwargs)
 
         return dict(changed=True, operation="create", **created)
 
     def update_token(self, accessor_id, **kwargs):
-        current = self._make_api_request("acl/token/" + accessor_id, "GET")
+        current = self.api.make_request("acl/token/" + accessor_id, "GET")
         if current.get("policies") is None:
             current["policies"] = []
 
         if not has_token_changed(current, kwargs):
             return dict(changed=False, operation="none", **current)
 
-        updated = self._make_api_request("acl/token/" + accessor_id, "PUT", data=kwargs)
+        updated = self.api.make_request("acl/token/" + accessor_id, "PUT", data=kwargs)
 
         return dict(changed=True, operation="update", **updated)
 
     def delete_token(self, accessor_id):
-        succeeded = self._make_api_request("acl/token/" + accessor_id, "DELETE")
+        succeeded = self.api.make_request("acl/token/" + accessor_id, "DELETE")
         if not succeeded:
             self.module.fail_json(msg="Token deletion failed")
 
         return dict(changed=True, operation="delete", accessor_id=accessor_id)
 
     def clone_token(self, accessor_id):
-        cloned = self._make_api_request("acl/token/{}/clone".format(accessor_id), "PUT")
+        cloned = self.api.make_request("acl/token/{}/clone".format(accessor_id), "PUT")
 
         return dict(changed=True, operation="clone", **cloned)
-
-    def _make_api_request(self, endpoint, method, data=None):
-        if data is not None:
-            data = json.dumps(data)
-
-        endpoint_url = self.url + "/v1/" + endpoint
-        headers = {"Content-Type": "application/json", "X-Consul-Token": self.token}
-
-        response, info = fetch_url(
-            self.module, endpoint_url, data=data, headers=headers, method=method
-        )
-        if response is None:
-            self.module.fail_json(**info)
-
-        status_code = info["status"]
-        if status_code >= 400:
-            self.module.fail_json(
-                msg="API request failed",
-                endpoint=endpoint_url,
-                method=method,
-                status=status_code,
-                response=info["body"],
-            )
-
-        body = json.loads(response.read())
-        if type(body) is bool:
-            return body
-        elif type(body) is list:
-            return [camel_dict_to_snake_dict(e) for e in body]
-        else:
-            return camel_dict_to_snake_dict(body)
 
 
 def is_policies_param_valid(policies):
@@ -296,7 +262,8 @@ def main():
     if match_description and not description:
         module.fail_json(msg="description cannot be empty when matching by description")
 
-    consul_acl = ConsulAclToken(module)
+    api = ConsulApi(module)
+    consul_acl = ConsulAclToken(module, api)
 
     if match_description and not accessor_id:
         accessor_id = consul_acl.find_existing_token(description, policies)

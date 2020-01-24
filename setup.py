@@ -12,6 +12,7 @@ setuptools.setup(
     author_email="jsundh@users.noreply.github.com",
     url="https://github.com/jsundh/ansible-modules-consul-acl",
     packages=["ansible/modules/consul_acl"],
+    py_modules=["ansible/module_utils/consul_acl"],
     install_requires=["ansible>=2.4.0"],
     license="GNU GPL v3",
 )

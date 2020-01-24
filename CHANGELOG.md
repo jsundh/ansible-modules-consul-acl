@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+-   Extract common API code into a module utility.
+
 ### Fixed
 
 -   Fix adding policies to bare tokens.

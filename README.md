@@ -57,3 +57,15 @@ Some of the environment variables for the [Consul CLI](https://www.consul.io/doc
 -   `CONSUL_HTTP_TOKEN` for the `token` parameter
 -   `CONSUL_CLIENT_CERT` for the `client_cert` parameter
 -   `CONSUL_CLIENT_KEY` for the `client_key` parameter
+
+## Testing locally
+
+To run the functional tests, set the following environment variables
+from the project root directory:
+
+```sh
+export ANSIBLE_LIBRARY="$PWD/ansible/modules/consul_acl"
+export ANSIBLE_MODULE_UTILS="$PWD/ansible/module_utils"
+```
+
+Then run the test playbooks in a Python environment without `ansible-modules-consul-acl` installed.

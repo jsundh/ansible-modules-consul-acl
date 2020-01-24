@@ -137,21 +137,18 @@ hash:
   sample: RV0EhBF/LkDrzjrI+4AMm1MqlX6X/J2JgW4S9uBkBu0=
 """
 
-import json
 import os
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
-from ansible.module_utils.urls import fetch_url
+from ansible.module_utils.consul_acl import ConsulApi
 
 
 class ConsulAclPolicy(object):
-    def __init__(self, module):
+    def __init__(self, module, api):
         self.module = module
-        self.url = module.params["url"]
-        self.token = module.params["token"]
+        self.api = api
 
     def find_existing_policy(self, name):
-        policies = self._make_api_request("acl/policies", "GET")
+        policies = self.api.make_request("acl/policies", "GET")
         for policy in policies:
             if policy["name"] == name:
                 return policy["id"]
@@ -159,56 +156,25 @@ class ConsulAclPolicy(object):
         return None
 
     def create_policy(self, **kwargs):
-        created = self._make_api_request("acl/policy", "PUT", data=kwargs)
+        created = self.api.make_request("acl/policy", "PUT", data=kwargs)
 
         return dict(changed=True, operation="create", **created)
 
     def update_policy(self, policy_id, **kwargs):
-        current = self._make_api_request("acl/policy/" + policy_id, "GET")
+        current = self.api.make_request("acl/policy/" + policy_id, "GET")
 
         if not has_policy_changed(current, kwargs):
             return dict(changed=False, operation="none", **current)
 
-        updated = self._make_api_request("acl/policy/" + policy_id, "PUT", data=kwargs)
+        updated = self.api.make_request("acl/policy/" + policy_id, "PUT", data=kwargs)
         return dict(changed=True, operation="update", **updated)
 
     def delete_policy(self, policy_id):
-        succeeded = self._make_api_request("acl/policy/" + policy_id, "DELETE")
+        succeeded = self.api.make_request("acl/policy/" + policy_id, "DELETE")
         if not succeeded:
             self.module.fail_json(msg="Policy deletion failed")
 
         return dict(changed=True, operation="delete", id=policy_id)
-
-    def _make_api_request(self, endpoint, method, data=None):
-        if data is not None:
-            data = json.dumps(data)
-
-        endpoint_url = self.url + "/v1/" + endpoint
-        headers = {"Content-Type": "application/json", "X-Consul-Token": self.token}
-
-        response, info = fetch_url(
-            self.module, endpoint_url, data=data, headers=headers, method=method
-        )
-        if response is None:
-            self.module.fail_json(**info)
-
-        status_code = info["status"]
-        if status_code >= 400:
-            self.module.fail_json(
-                msg="API request failed",
-                endpoint=endpoint_url,
-                method=method,
-                status=status_code,
-                response=info["body"],
-            )
-
-        body = json.loads(response.read())
-        if type(body) is bool:
-            return body
-        elif type(body) is list:
-            return [camel_dict_to_snake_dict(e) for e in body]
-        else:
-            return camel_dict_to_snake_dict(body)
 
 
 def has_policy_changed(current, updated):
@@ -255,7 +221,8 @@ def main():
     if state == "present" and not rules:
         module.fail_json(msg="rules must be set when state == 'present'")
 
-    consul_acl = ConsulAclPolicy(module)
+    api = ConsulApi(module)
+    consul_acl = ConsulAclPolicy(module, api)
 
     if not policy_id:
         policy_id = consul_acl.find_existing_policy(name)
