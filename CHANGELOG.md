@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+-   Fix `secret_id` not being returned by the module in certain cases.
+
 ## [0.3.0] - 2020-01-24
 
 ### Added

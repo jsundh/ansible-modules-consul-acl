@@ -24,6 +24,7 @@
         that:
           - t1.changed
           - t1.operation == 'create'
+          - t1.secret_id|default('') != ''
 
     - name: Match previous token
       consul_acl_token:
@@ -38,6 +39,7 @@
         that:
           - not t2.changed
           - t2.accessor_id == t1.accessor_id
+          - t2.secret_id|default('') != ''
 
     - name: Update by accessor ID
       consul_acl_token:
@@ -53,6 +55,7 @@
           - t3.changed
           - t3.operation == 'update'
           - t3.accessor_id == t1.accessor_id
+          - t3.secret_id|default('') != ''
 
     - name: Clone token
       consul_acl_token:
@@ -91,6 +94,7 @@
         that:
           - not t6.changed
           - t6.accessor_id == t4.accessor_id
+          - t6.secret_id|default('') != ''
 
     - name: Create token without policies
       consul_acl_token:

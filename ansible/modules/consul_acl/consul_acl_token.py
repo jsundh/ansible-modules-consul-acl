@@ -157,8 +157,7 @@ class ConsulAclToken(object):
         tokens = self.api.make_request("acl/tokens" + policy_filter, "GET")
         for token in tokens:
             if token["description"] == description:
-                # Relies on only secret_id not being returned, which is immutable anyway
-                return token
+                return self.get_token(token["accessor_id"])
 
         return None
 
