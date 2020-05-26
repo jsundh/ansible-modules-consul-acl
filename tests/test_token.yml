@@ -136,6 +136,40 @@
           - t9.operation == 'create'
           - t9.accessor_id == '59fa6fc2-b70f-4767-8fd2-6a550660e068'
 
+    - name: Create token with a specific secret ID
+      consul_acl_token:
+        secret_id: ac040e34-c2c6-44b2-8c9e-f6f05459b638
+        description: test-token-4
+        match_description: false
+        policies:
+          - name: "{{ policy.name }}"
+        state: present
+      register: t10
+
+    - assert:
+        that:
+          - t10.changed
+          - t10.operation == 'create'
+          - t10.secret_id == 'ac040e34-c2c6-44b2-8c9e-f6f05459b638'
+
+    - name: Update token with a preset secret ID
+      consul_acl_token:
+        accessor_id: "{{ t10.accessor_id }}"
+        secret_id: ac040e34-c2c6-44b2-8c9e-f6f05459b638
+        description: test-token-4-updated
+        match_description: false
+        policies:
+          - name: "{{ policy.name }}"
+        state: present
+      register: t11
+
+    - assert:
+        that:
+          - t11.changed
+          - t11.operation == 'update'
+          - t11.secret_id == 'ac040e34-c2c6-44b2-8c9e-f6f05459b638'
+          - t11.description == 'test-token-4-updated'
+
     - name: Remove remaining tokens
       consul_acl_token:
         accessor_id: "{{ item.accessor_id }}"
@@ -144,6 +178,7 @@
         - "{{ t4 }}"
         - "{{ t7 }}"
         - "{{ t9 }}"
+        - "{{ t11 }}"
       loop_control:
         label: "{{ item.accessor_id }}"
 
