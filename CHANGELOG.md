@@ -6,7 +6,7 @@
 
 ### Added
 
--   Allow setting pre-defined secret_id.
+-   Allow setting pre-defined secret_id. ([#3](https://github.com/jsundh/ansible-modules-consul-acl/pull/3))
 
 ### Fixed
 
