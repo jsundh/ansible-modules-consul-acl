@@ -28,6 +28,12 @@ options:
      - If not specified, Consul will generate an UUID when creating a token.
     type: str
     required: false
+  secret_id:
+    description:
+     - The secret ID of the token.
+     - If not specified, Consul will generate an UUID when creating a token.
+    type: str
+    required: false
   description:
     description:
       - Free form human readable description of the token.
@@ -205,6 +211,9 @@ def is_policies_param_valid(policies):
 
 def has_token_changed(current, updated):
     for k, v in updated.items():
+        # Ignore empty secret_id
+        if v is None and k.lower() == "secret_id".lower():
+            continue
         if k == "policies":
             continue
         elif current.get(k) != v:
@@ -246,6 +255,7 @@ def main():
         validate_certs=dict(type="bool", default=True),
         client_cert=dict(type="path", default=os.environ.get("CONSUL_CLIENT_CERT")),
         client_key=dict(type="path", default=os.environ.get("CONSUL_CLIENT_KEY")),
+        secret_id=dict(type="str", default=None),
     )
 
     module = AnsibleModule(argument_spec=arg_spec, supports_check_mode=False)
@@ -258,6 +268,7 @@ def main():
     state = module.params["state"]
     url = module.params["url"]
     token = module.params["token"]
+    secret_id = module.params["secret_id"]
 
     if not url:
         module.fail_json(msg="url must be set")
@@ -280,7 +291,7 @@ def main():
     else:
         current_token = None
 
-    kwargs = dict(policies=policies, description=description, local=local)
+    kwargs = dict(policies=policies, description=description, local=local, secret_id=secret_id)
     if state == "present" and current_token:
         result = consul_acl.update_token(current_token, **kwargs)
     elif state == "present":
