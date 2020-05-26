@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2020-05-26
+
+### Added
+
+-   Allow setting pre-defined secret_id.
+
 ### Fixed
 
 -   Fix `secret_id` not being returned by the module in certain cases.
@@ -48,7 +54,8 @@
 -   `consul_acl_policy` module.
 -   `consul_acl_token` module.
 
-[unreleased]: https://github.com/jsundh/ansible-modules-consul-acl/compare/0.3.0...HEAD
+[unreleased]: https://github.com/jsundh/ansible-modules-consul-acl/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/jsundh/ansible-modules-consul-acl/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/jsundh/ansible-modules-consul-acl/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/jsundh/ansible-modules-consul-acl/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/jsundh/ansible-modules-consul-acl/compare/0.0.1...0.1.0
